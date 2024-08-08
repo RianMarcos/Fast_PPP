@@ -149,12 +149,16 @@ def save_pdf_report():
     click_image('guia_documentacao.png', 0.6)
     click_image('exibir_doc.png', 0.6)
     sleep(15)
-    click_image('guardar_como.png', 0.6)
-    click_image('pdf.png', 0.6)
-    click_image('ok_pdf.png', 0.6)
+    click_image('guardar_como.png', 0.7)
+    sleep(0.5)
+    click_image('pdf.png', 0.7)
+    sleep(0.5)
+    click_image('ok_pdf.png', 0.8)
     sleep(2)
     click_image('documentos_w11.png', 0.9)
+    sleep(0.5)
     click_image('teste_pasta.png', 0.6, double_click=True)
+    sleep(0.5)
     click_image('salvar_pasta.png', 0.6)
     sleep(5.5)
 
@@ -200,6 +204,7 @@ def exclui_passeio(check_passeio_adjacente, check_passeio_oposto):
             check_passeio1 = 0
         if check_passeio1 == 1: 
             print("Passeio1 Encontrado")
+            sleep(0.5)
             passeio1 = pyautogui.locateCenterOnScreen('passeio1.png', confidence=0.8)
             pyautogui.click(passeio1)
             sleep(1.9)
@@ -580,7 +585,7 @@ def scroll_to_position(target_y, steps=200):
 
 # Iterar sobre os valores extraídos e digitar no campo correspondente
 for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio)):
-
+    sleep(1.5)
     # Verifica se a tecla Shift está pressionada
     if keyboard.is_pressed('shift'):
         print('A tecla Shift está pressionada.')
