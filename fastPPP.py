@@ -9,9 +9,12 @@ import keyboard
 
 cont_geral = 0
 check_distri = 0
+modifica_altura_verifica = True #ativar ou desativar modificação de altura
+
+
 
 # Path to save the screenshot
-screenshot_dir = r"C:/Users/AdminDell/Desktop/Fast_PPP/images"
+screenshot_dir = r"C:/Users/AdminDell/Desktop/Pictures_FastPPP/images"
 if not os.path.exists(screenshot_dir):
     os.makedirs(screenshot_dir)
 
@@ -30,7 +33,8 @@ if 'angulo_escolhido' not in df.columns:
     df['angulo_escolhido'] = ""
 if 'cenario' not in df.columns:
     df['cenario'] = ""
-
+if 'nova_altura' not in df.columns:
+    df['nova_altura'] = ""
 
 # Garantir que a coluna 'luminaria_escolhida' é do tipo object
 df['luminaria_escolhida'] = df['luminaria_escolhida'].astype(object)
@@ -61,6 +65,63 @@ classe_passeio = df['classe_passeio'].str.lower().tolist()
 #pyautogui.doubleClick(147, 423, duration=0.5)
 #sleep(30)  # TEMPO ATÉ ABRIR E CARREGAR O DIALUX
 
+def modifica_altura():
+    altura_maxima = 8.5
+    passo = 0.5
+    print("Modificando a altura de instalação")
+    sleep(0.5)
+    guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.6)
+    pyautogui.click(guia_planejamento.x, guia_planejamento.y)
+    sleep(1.5)
+
+    #click no user para que os proximos tabs estejam corretos
+    indice_tipos = pyautogui.locateCenterOnScreen('indice_tipos.png', confidence=0.9)
+    pyautogui.click(indice_tipos.x, indice_tipos.y)
+    sleep(0.3)
+    
+
+    tab_interate(19)
+    pyautogui.press('space')
+    sleep(0.8)
+
+    tab_interate(2)
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.press('delete')
+    pyautogui.write(str(altura_lum_x))
+    sleep(0.3)
+
+    pyautogui.press('tab')
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.press('delete')
+    pyautogui.write(str(altura_maxima))
+    sleep(0.3)
+
+    pyautogui.press('tab')
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.press('delete')
+    pyautogui.write(str(passo))
+    sleep(0.3)
+
+def refatora_altura():
+    print("Arrumando cenário padrão: ")
+
+    guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.8)
+    pyautogui.click(guia_planejamento.x, guia_planejamento.y)
+    sleep(1.5)
+
+    ruas = pyautogui.locateCenterOnScreen('ruas.png', confidence=0.8)
+    pyautogui.click(ruas.x, ruas.y)
+    sleep(1)
+
+    luminaria = pyautogui.locateCenterOnScreen('luminaria.png', confidence=0.8)
+    pyautogui.click(luminaria.x, luminaria.y)
+    sleep(1)
+
+    tab_interate(22)
+    pyautogui.press('space')
+    print("Cenário padrão ajustado")
+
+
 def choose_luminaria():
     ruas = pyautogui.locateCenterOnScreen('ruas.png', confidence=0.7) #ir para ruas e voltar para luminarias para resetar tabs
     pyautogui.click(ruas.x, ruas.y)
@@ -74,8 +135,8 @@ def choose_luminaria():
     y_wall = 567
     pyautogui.click(x_wall, y_wall)
 
-    pyautogui.scroll(+300)
-    sleep(1.1)
+    pyautogui.scroll(+800)
+    sleep(1.5)
 
     otimizar = pyautogui.locateCenterOnScreen('otimizar.png', confidence=0.8)
     pyautogui.click(otimizar.x, otimizar.y)
@@ -84,7 +145,7 @@ def choose_luminaria():
 def verifica_atendimento():
     aba_resultado = pyautogui.locateCenterOnScreen('aba_resultado.png', confidence=0.8)
     pyautogui.click(aba_resultado.x, aba_resultado.y)
-    sleep(1)
+    sleep(2.5)
 
     #tirar print para verificar qual atende
     left = 634
@@ -141,13 +202,28 @@ def verifica_atendimento():
         nome_luminaria = "240"
     else:
         nome_luminaria = "NAO ATENDE"
+    
+
+    #registrar altura de instalação
+    leftalt = 1150
+    topalt = 206
+    widthalt = 51
+    heightalt = 22
+    # Capturar tela da área de resultados
+    screenshot = pyautogui.screenshot(region=(leftalt, topalt, widthalt, heightalt)) #captura altura instalação
+    screenshot_path_altura = os.path.join(screenshot_dir, f"altura_{cont_geral}.png")
+    screenshot.save(screenshot_path_altura)
+
+    global altura
+    altura = pytesseract.image_to_string(screenshot_path_altura, lang='por', config='--psm 7').strip()
+    print("A altura de instalação é : " + altura)
+
     return nome_luminaria
-
-
 
 def save_pdf_report():
     click_image('guia_documentacao.png', 0.6)
-    click_image('exibir_doc.png', 0.6)
+    sleep(1)
+    click_image('exibir_doc.png', 0.6, double_click=True)
     sleep(15)
     click_image('guardar_como.png', 0.7)
     sleep(0.5)
@@ -159,7 +235,7 @@ def save_pdf_report():
     sleep(0.5)
     click_image('teste_pasta.png', 0.6, double_click=True)
     sleep(0.5)
-    click_image('salvar_pasta.png', 0.6)
+    click_image('salvar_pasta.png', 0.7)
     sleep(5.5)
 
 def click_image(image_path, confidence=0.7, double_click=False):
@@ -268,7 +344,6 @@ def verifica_add_passeio():
         tab_interate(4)
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.press('delete')
-        name_passeio_1 = "Passeio 1 (C3)"
         pyautogui.write(str(name_passeio_1))
         sleep(0.3)
         tab_interate(1)
@@ -566,26 +641,11 @@ def tab_interate(cont):
         i += 1
     i = 0
 
-def scroll_to_position(target_y, steps=200):
-    start_time = time()
-    while True:
-        current_y = pyautogui.position().y
-        if current_y >= target_y:
-            break
-        pyautogui.scroll(-steps)
-        sleep(0.5)
-        
-        # Verifique se 10 segundos se passaram
-        if time() - start_time >= 10:
-            # Move o mouse para a posição atual da barra de rolagem
-            scrollbar_position = pyautogui.position()
-            pyautogui.moveTo(scrollbar_position.x, scrollbar_position.y)
-            break
-
 
 # Iterar sobre os valores extraídos e digitar no campo correspondente
 for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio)):
     sleep(1.5)
+    altura_modificada = False
     # Verifica se a tecla Shift está pressionada
     if keyboard.is_pressed('shift'):
         print('A tecla Shift está pressionada.')
@@ -721,6 +781,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         sleep(1)
 
         tab_interate(1)
+        sleep(0.7)
         print("A quantidade de faixas é: "+ str(qtde_faixas_x))
         sleep(0.5)
         pyautogui.hotkey('ctrl', 'a')
@@ -761,6 +822,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         tab_interate(1)
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.press('delete')
+        sleep(0.5)
         print("A quantidade de faixas é: "+ str(qtde_faixas_x))
         sleep(0.5)
         # Digitando qtde de faixas
@@ -853,6 +915,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         sleep(1)
 
         tab_interate(1)
+        sleep(0.7)
         print("A quantidade de faixas é: "+ str(qtde_faixas_x))
         sleep(0.5)
         # Digitando qtde de faixas
@@ -948,7 +1011,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     # Digitando o novo valor para larg_passeio_adjacente
     pyautogui.write(str(entre_postes_x))
-    sleep(0.5)
+    sleep(2)
     #Altura do ponto de luz
     tab_interate(3)
     pyautogui.hotkey('ctrl', 'a')
@@ -1007,7 +1070,26 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     #verifica_atendimento()
     luminaria_escolhida = verifica_atendimento()
 
-    #modificando nome do projeto
+    if(luminaria_escolhida == "NAO ATENDE" and modifica_altura_verifica == True):
+        modifica_altura()
+        sleep(0.9)
+        otimizar = pyautogui.locateCenterOnScreen('otimizar.png', confidence=0.8)
+        pyautogui.click(otimizar.x, otimizar.y)
+        sleep(6)
+
+        luminaria_escolhida = verifica_atendimento()
+        print("Nova luminária escolhida: "+ luminaria_escolhida)
+
+        if(luminaria_escolhida == "NAO ATENDE"):
+            altura_modificada = altura_lum_x
+            print("Modificação de altura nao foi o bastante para a atender a este cenário, iniciar modifcação de braço")
+        else:
+            altura_modificada = True
+            altura_float = float(altura)
+            print("Modificação de altura bem sucedida, nova altura de instalação: ")
+            print(altura_float)
+
+    #---------------------------modificando nome do projeto---------------------------
     sleep(1.5)
     nome_projet = pyautogui.locateCenterOnScreen('nome_projeto.png', confidence=0.6)
     pyautogui.click(nome_projet.x, nome_projet.y)
@@ -1020,7 +1102,11 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
 
-    if(luminaria_escolhida != "NAO ATENDE"):
+    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
+        print("Entrou no altura modificada")
+        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+    elif(luminaria_escolhida != "NAO ATENDE"):
+        print("Entrou no altura nao modificada")
         modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
     else:
         modify_name = "Itajai " + cont__str + " - " + luminaria_escolhida #entra aqui se nao atender
@@ -1053,7 +1139,11 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     sleep(1)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
-    if(luminaria_escolhida != "NAO ATENDE"):
+    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
+        print("Entrou no altura modificada")
+        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+    elif(luminaria_escolhida != "NAO ATENDE"):
+        print("Entrou no altura nao modificada")
         project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
     else:
         project_name = "Itajai " + cont__str + " - " + luminaria_escolhida #entra aqui se nao atender
@@ -1066,9 +1156,19 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.click(salvar_pasta.x, salvar_pasta.y)
     sleep(4)
 
+    #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
+    if(altura_modificada == True):
+    
+     refatora_altura()
+
     # Atualizar a planilha com a luminária escolhida e o ângulo
-    df.at[idx, 'luminaria_escolhida'] = luminaria_escolhida
+    df.at[idx, 'luminaria_escolhida'] = "AGN7" + luminaria_escolhida + "D4"
     df.at[idx, 'angulo_escolhido'] = angulo_x
+
+    if(altura_modificada == True):
+        df.at[idx, 'nova_altura'] = altura_float
+    else:
+        df.at[idx, 'nova_altura'] = "Sem alterações"
 
     # Garantir que a coluna 'cenario' é do tipo object
     df['cenario'] = df['cenario'].astype(object)
@@ -1083,3 +1183,5 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
 
     # Salvar a planilha atualizada  
     df_limpo.to_excel('table_itajai_test_atualizada.xlsx', sheet_name='RIAN - V4P4', index=False)
+
+    #colocar nova altura de instalação na planilha
