@@ -10,7 +10,8 @@ import keyboard
 cont_geral = 0
 check_distri = 0
 modifica_altura_verifica = True #ativar ou desativar modificação de altura
-
+coeficiente_eficientiza = 0.6 #Valor de eficientização combinado
+atender_eficientiza = True #Ligar ou desligar eficientização
 
 
 # Path to save the screenshot
@@ -58,12 +59,56 @@ larg_canteiro_central = df['larg_canteiro_central'].tolist()
 pendor = df['pendor'].tolist()
 classe_via = df['classe_via'].str.lower().tolist() 
 classe_passeio = df['classe_passeio'].str.lower().tolist() 
+luminaria_antiga = df['luminaria_antiga'].tolist()
 
 
 #------------ABRINDO CENARIO PADRAO ITAJAI-------------
 # 1 - ABRINDO ARQUIVO
 #pyautogui.doubleClick(147, 423, duration=0.5)
 #sleep(30)  # TEMPO ATÉ ABRIR E CARREGAR O DIALUX
+
+def porcentagem_eficientiza(luminaria_escolhida):
+    print(luminaria_escolhida)
+    luminaria_escolhida_int = int(luminaria_escolhida)
+    luminaria_antiga_float = float(luminaria_antiga)
+    eficientiza = luminaria_antiga_float - (coeficiente_eficientiza * luminaria_antiga_float)
+    print("Potência antiga: ")
+    print(luminaria_antiga)
+    print("Porcentagem de eficientização definida: ") 
+    print(coeficiente_eficientiza)
+    print("Eficientização a ser atingida: ")
+    print(eficientiza)
+
+    
+    if(luminaria_escolhida_int > eficientiza):
+        print("Luminaria não atende a porcentagem de eficientização, ir para ajuste de altura")
+
+        guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.6)
+        pyautogui.click(guia_planejamento.x, guia_planejamento.y)
+        sleep(1.5)
+        pyautogui.doubleClick(528,364)
+        if(verifica_modificacaoH == False):
+            print("Altura ainda nao modificada, ajustando altura para melhor desempenho da eficientização")
+            modifica_altura()
+            sleep(0.9)
+            otimizar = pyautogui.locateCenterOnScreen('otimizar.png', confidence=0.8)
+            pyautogui.click(otimizar.x, otimizar.y)
+            sleep(6)
+
+            luminaria_escolhida = verifica_atendimento()
+            print("Nova luminária escolhida: "+ luminaria_escolhida)
+
+        if(luminaria_escolhida == "NAO ATENDE"):
+            altura_modificada = altura_lum_x
+            print("Modificação de altura nao foi o bastante para a atender a este cenário, iniciar modifcação de braço")
+        elif(luminaria_escolhida != "NAO ATENDE" and luminaria_escolhida_int <= eficientiza):
+            verifica_modificacaoH = True
+            altura_float = float(altura)
+            print("Modificação de altura bem sucedida, nova altura de instalação: ")
+            print(altura_float)
+            print("Nova luminaria escolhida atendendo a eficientização " + luminaria_escolhida)
+    else:
+        print("Não será necessário fazer modificações, a luminaria escolhida ja atende a eficientização")
 
 def modifica_altura():
     altura_maxima = 8.5
@@ -643,8 +688,9 @@ def tab_interate(cont):
 
 
 # Iterar sobre os valores extraídos e digitar no campo correspondente
-for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio)):
+for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x, luminaria_antiga) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio, luminaria_antiga)):
     sleep(1.5)
+    verifica_modificacaoH = False #sempre que entrar no loop precisa estar em false pra conseguir entrar na modificação de altura da eficientização
     altura_modificada = False
     # Verifica se a tecla Shift está pressionada
     if keyboard.is_pressed('shift'):
@@ -1072,6 +1118,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
 
     if(luminaria_escolhida == "NAO ATENDE" and modifica_altura_verifica == True):
         modifica_altura()
+        verifica_modificacaoH = True
         sleep(0.9)
         otimizar = pyautogui.locateCenterOnScreen('otimizar.png', confidence=0.8)
         pyautogui.click(otimizar.x, otimizar.y)
@@ -1088,6 +1135,13 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
             altura_float = float(altura)
             print("Modificação de altura bem sucedida, nova altura de instalação: ")
             print(altura_float)
+
+        #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
+    if(altura_modificada == True):
+        refatora_altura()
+
+    if(atender_eficientiza == True):
+        porcentagem_eficientiza(luminaria_escolhida)
 
     #---------------------------modificando nome do projeto---------------------------
     sleep(1.5)
@@ -1157,9 +1211,8 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     sleep(4)
 
     #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
-    if(altura_modificada == True):
-    
-     refatora_altura()
+    if(verifica_modificacaoH  == True):
+        refatora_altura()
 
     # Atualizar a planilha com a luminária escolhida e o ângulo
     df.at[idx, 'luminaria_escolhida'] = "AGN7" + luminaria_escolhida + "D4"

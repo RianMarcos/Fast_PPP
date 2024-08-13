@@ -7,10 +7,5 @@ import numpy as np
 import os
 import keyboard
 
-#click area preta para fazer a rolagem
-x_wall= 1410
-y_wall = 567
-pyautogui.click(x_wall, y_wall)
-
-pyautogui.scroll(+800)
-sleep(1.5)
+pyautogui.moveTo(303,587)#mover o mouse parar area das luminaria para fazer a rolagem para cima
+pyautogui.scroll(+100000)
