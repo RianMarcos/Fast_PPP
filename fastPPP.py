@@ -12,6 +12,7 @@ check_distri = 0
 modifica_altura_verifica = True #ativar ou desativar modificação de altura
 coeficiente_eficientiza = 0.6 #Valor de eficientização combinado
 atender_eficientiza = True #Ligar ou desligar eficientização
+qtde_bracos = 4 #quantos braços vao ser testados
 
 
 # Path to save the screenshot
@@ -67,10 +68,118 @@ luminaria_antiga = df['luminaria_antiga'].tolist()
 #pyautogui.doubleClick(147, 423, duration=0.5)
 #sleep(30)  # TEMPO ATÉ ABRIR E CARREGAR O DIALUX
 
-def porcentagem_eficientiza(luminaria_escolhida):
+def verifica_resultados_eficientiza(novo_braco, luminaria_escolhida, comprimento_braco_x):
+    print("Testando tamanho de braço para satisfazer eficientização")
+
+    atende_braco = False
+    guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.6)
+    pyautogui.click(guia_planejamento.x, guia_planejamento.y)
+    sleep(1.5)
+    pyautogui.doubleClick(528,364)
+
+    #click indice tipos para que os proximos tabs estejam corretos
+    indice_tipos = pyautogui.locateCenterOnScreen('indice_tipos.png', confidence=0.9)
+    pyautogui.click(indice_tipos.x, indice_tipos.y)
+    sleep(0.3)
+
+    if(valida_central == 0):
+        print("Canteiro central não encontrado, tabs ajustados para tal")
+        tab_interate(34)
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.press('delete')
+        sleep(1)
+        pyautogui.write(str(novo_braco))
+        otimizar = pyautogui.locateCenterOnScreen('otimizar.png', confidence=0.8)
+        pyautogui.click(otimizar.x, otimizar.y)
+        sleep(6)
+        global luminaria_escolhida_eficientiza
+        global luminaria_escolhida_eficientiza_int
+        luminaria_escolhida_eficientiza = verifica_atendimento()
+        print("Nova luminária escolhida: "+ luminaria_escolhida)
+        print("TESTE DA VARIAVEL EFICIENTIZA, VALOR GUARDADO NELA É DE: ")
+        print(eficientiza)
+        luminaria_escolhida_eficientiza_int = int(luminaria_escolhida_eficientiza)
+        luminaria_escolhida_int = int(luminaria_escolhida)
+        if(luminaria_escolhida != "NAO ATENDE" and luminaria_escolhida_eficientiza_int <= eficientiza ):
+            global verifica_modificacaoBraco
+            verifica_modificacaoBraco = True   
+        else:
+            verifica_modificacaoBraco = False
+        print("Luminaria escolhida na eficientização e luminatia antiga: ")
+        print(luminaria_escolhida_eficientiza_int)
+        print(luminaria_escolhida_int)
+        if(luminaria_escolhida_eficientiza_int >= luminaria_escolhida_int):
+            print("Manter luminaria ja escolhida anteriormente, bem como o braço ")  
+            luminaria_escolhida = luminaria_escolhida
+            comprimento_braco_x = comprimento_braco_x
+            #ajustar aqui para configurar o cenario para escrever o braco antigo no dialux
+            luminaria_escolhida = luminaria_escolhida
+            comprimento_braco_x = comprimento_braco_x
+            print("Ajustando altura")
+            guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.6)
+            pyautogui.click(guia_planejamento.x, guia_planejamento.y)
+            sleep(1.5)
+            pyautogui.doubleClick(528,364)
+            #click indice tipos para que os proximos tabs estejam corretos
+            indice_tipos = pyautogui.locateCenterOnScreen('indice_tipos.png', confidence=0.9)
+            pyautogui.click(indice_tipos.x, indice_tipos.y)
+            sleep(0.3)
+
+            tab_interate(34)
+            pyautogui.hotkey('ctrl', 'a')
+            pyautogui.press('delete')
+            sleep(0.3)
+            pyautogui.write(str(comprimento_braco_x))
+            sleep(0.3)
+        else:
+            print("Nova luminária e novo braço escolhidos serão passados para frente")
+            luminaria_escolhida = luminaria_escolhida_eficientiza
+            comprimento_braco_x = novo_braco 
+            global braco_modificado_check #verificador de alteração de braço
+            braco_modificado_check = True
+            return True
+
+    else:
+        print("Canteiro central encontrado, tabs ajustados para tal (fazer ainda logica)")
+    return verifica_modificacaoBraco
+
+def ajuste_braco(comprimento_braco_x, luminaria_escolhida):
+    print("Função ajuste de braço")
+    i =0
+    #luminaria_escolhida_eficientiza = luminaria_escolhida #? teste
+    while(i < qtde_bracos): #verificar braço a braço qual atende com passo de 0.5
+        
+        if(i == 0): #se for a primeira vez do laço pega o valor do comprimento do braco da planilha
+            if(comprimento_braco_x <= 3.5):
+                novo_braco = comprimento_braco_x + 0.5
+            elif(comprimento_braco_x == 3.5):
+                novo_braco = comprimento_braco_x - 0.5
+        else: #se for a segunda ou mais vezes pega o valor do novo braço e vai somando 
+            if(comprimento_braco_x <= 3.5):
+                novo_braco = novo_braco + 0.5
+            elif(comprimento_braco_x == 3.5):
+                novo_braco = novo_braco - 0.5
+        print("Vai chamar a função:")
+        teste_passa_braco = verifica_resultados_eficientiza(novo_braco, luminaria_escolhida, comprimento_braco_x)
+        if(teste_passa_braco == True): #esta funcao que vai escrever o tamannho do braço e verificar se atende
+            print("Braço de tamanho: ")
+            print(novo_braco)
+            print("Obteve um melhor desempenho que o antigo: ")
+            print(comprimento_braco_x)
+            print(" ")
+            comprimento_braco_x = novo_braco
+            #arrumar aqui tabs pra chegar no braço
+            break
+        i +=1  
+    return luminaria_escolhida_eficientiza, novo_braco
+
+
+
+def porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH):
     print(luminaria_escolhida)
     luminaria_escolhida_int = int(luminaria_escolhida)
     luminaria_antiga_float = float(luminaria_antiga)
+    global eficientiza
     eficientiza = luminaria_antiga_float - (coeficiente_eficientiza * luminaria_antiga_float)
     print("Potência antiga: ")
     print(luminaria_antiga)
@@ -81,7 +190,9 @@ def porcentagem_eficientiza(luminaria_escolhida):
 
     
     if(luminaria_escolhida_int > eficientiza):
-        print("Luminaria não atende a porcentagem de eficientização, ir para ajuste de altura")
+        print("Luminaria não atende a porcentagem de eficientização, ir para ajuste de braço")
+        global novo_braco_eficientiza
+        luminaria_escolhida_eficientiza, novo_braco_eficientiza = ajuste_braco(comprimento_braco_x, luminaria_escolhida)
 
         guia_planejamento = pyautogui.locateCenterOnScreen('guia_planejamento.png', confidence=0.6)
         pyautogui.click(guia_planejamento.x, guia_planejamento.y)
@@ -109,9 +220,12 @@ def porcentagem_eficientiza(luminaria_escolhida):
             print("Nova luminaria escolhida atendendo a eficientização " + luminaria_escolhida)
     else:
         print("Não será necessário fazer modificações, a luminaria escolhida ja atende a eficientização")
+        luminaria_escolhida_eficientiza = luminaria_escolhida
+    return luminaria_escolhida_eficientiza
 
 def modifica_altura():
     altura_maxima = 8.5
+    altura_minima = 7.5
     passo = 0.5
     print("Modificando a altura de instalação")
     sleep(0.5)
@@ -119,7 +233,7 @@ def modifica_altura():
     pyautogui.click(guia_planejamento.x, guia_planejamento.y)
     sleep(1.5)
 
-    #click no user para que os proximos tabs estejam corretos
+    #click indice tipos para que os proximos tabs estejam corretos
     indice_tipos = pyautogui.locateCenterOnScreen('indice_tipos.png', confidence=0.9)
     pyautogui.click(indice_tipos.x, indice_tipos.y)
     sleep(0.3)
@@ -319,6 +433,7 @@ def exclui_passeio(check_passeio_adjacente, check_passeio_oposto):
     print("Excluindo passeios necessários")
     if(check_passeio_oposto == 0): #será necessário excluir primeiro passeio
         try:
+            sleep(0.5)
             passeio1 = pyautogui.locateCenterOnScreen('passeio1.png', confidence=0.8)
             check_passeio1 = 1 if passeio1 is not None else 0  
         except pyautogui.ImageNotFoundException:
@@ -329,7 +444,7 @@ def exclui_passeio(check_passeio_adjacente, check_passeio_oposto):
             passeio1 = pyautogui.locateCenterOnScreen('passeio1.png', confidence=0.8)
             pyautogui.click(passeio1)
             sleep(1.9)
-            remover = pyautogui.locateCenterOnScreen('remover2.png', confidence=0.9)
+            remover = pyautogui.locateCenterOnScreen('remover2.png', confidence=0.8)
             pyautogui.click(remover) 
             sleep(0.7)
         else:
@@ -351,7 +466,7 @@ def exclui_passeio(check_passeio_adjacente, check_passeio_oposto):
             passeio2 = pyautogui.locateCenterOnScreen('passeio2.png', confidence=0.8)
             pyautogui.click(passeio2)
             sleep(1.9)
-            remover = pyautogui.locateCenterOnScreen('remover2.png', confidence=0.9)
+            remover = pyautogui.locateCenterOnScreen('remover2.png', confidence=0.8)
             pyautogui.click(remover) 
             sleep(0.8)
         else:
@@ -478,7 +593,7 @@ def classifica_vias_passeios():
     pyautogui.write(str(classe_passeio_em))
 
     #modificar uo
-    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.8)
+    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.6)
     pyautogui.click(uo_parametro)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
@@ -507,7 +622,7 @@ def classifica_vias_passeios():
         pyautogui.write(str(classe_via_em))
 
         #modificar uo
-        uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.8)
+        uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.6)
         pyautogui.click(uo_parametro)
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.press('delete')
@@ -533,9 +648,12 @@ def classifica_vias_passeios():
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
     pyautogui.write(str(classe_via_em))
+    sleep(0.2)
+    pyautogui.scroll(-300)
+    sleep(0.8)
 
     #modificar uo
-    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.8)
+    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.6)
     pyautogui.click(uo_parametro)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
@@ -565,7 +683,7 @@ def classifica_vias_passeios():
     pyautogui.write(str(classe_passeio_em))
 
     #modificar uo
-    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.8)
+    uo_parametro = pyautogui.locateCenterOnScreen('uo_parametro.png', confidence=0.6)
     pyautogui.click(uo_parametro)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
@@ -690,6 +808,8 @@ def tab_interate(cont):
 # Iterar sobre os valores extraídos e digitar no campo correspondente
 for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x, luminaria_antiga) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio, luminaria_antiga)):
     sleep(1.5)
+    braco_modificado_check = False
+    #braco_modificado_check = False #veriricador de alteração de braço
     verifica_modificacaoH = False #sempre que entrar no loop precisa estar em false pra conseguir entrar na modificação de altura da eficientização
     altura_modificada = False
     # Verifica se a tecla Shift está pressionada
@@ -917,8 +1037,8 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
             faixa_central_1 = pyautogui.locateCenterOnScreen('faixa_central_1.png', confidence=0.8)
             pyautogui.click(faixa_central_1.x, faixa_central_1.y)
             sleep(2)
-            remover2 = pyautogui.locateCenterOnScreen('remover2.png', confidence=0.9)
-            pyautogui.click(remover2.x, remover2.y)
+            remover_central = pyautogui.locateCenterOnScreen('remover_central.png', confidence=0.9)
+            pyautogui.click(remover_central.x, remover_central.y)
             sleep(2)
 
             pista_de_rodagem2 = pyautogui.locateCenterOnScreen('pista_de_rodagem2.png', confidence=0.9)
@@ -1114,8 +1234,9 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     choose_luminaria()
     #--------------------------------------------------------------------------------------------------#
     #verifica_atendimento()
-    luminaria_escolhida = verifica_atendimento()
 
+    luminaria_escolhida = verifica_atendimento()
+    
     if(luminaria_escolhida == "NAO ATENDE" and modifica_altura_verifica == True):
         modifica_altura()
         verifica_modificacaoH = True
@@ -1135,13 +1256,15 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
             altura_float = float(altura)
             print("Modificação de altura bem sucedida, nova altura de instalação: ")
             print(altura_float)
+   
+
+    if(atender_eficientiza == True):
+        luminaria_escolhida = porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH)
 
         #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
     if(altura_modificada == True):
         refatora_altura()
 
-    if(atender_eficientiza == True):
-        porcentagem_eficientiza(luminaria_escolhida)
 
     #---------------------------modificando nome do projeto---------------------------
     sleep(1.5)
@@ -1155,10 +1278,15 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
 
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
-
-    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
+    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
+        print("Entrou no altura modificada e braco modificado")
+        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+    elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
         modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+    elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
+        print("braco modificado")
+        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
         modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
@@ -1193,9 +1321,15 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     sleep(1)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
-    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
+    if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
+        print("Entrou no altura modificada e braco modificado")
+        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+    elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
         project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+    elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
+        print("braco modificado")
+        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
         project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
@@ -1209,11 +1343,11 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     salvar_pasta = pyautogui.locateCenterOnScreen('salvar_pasta.png', confidence=0.6)
     pyautogui.click(salvar_pasta.x, salvar_pasta.y)
     sleep(4)
-
+    '''
     #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
     if(verifica_modificacaoH  == True):
         refatora_altura()
-
+    '''
     # Atualizar a planilha com a luminária escolhida e o ângulo
     df.at[idx, 'luminaria_escolhida'] = "AGN7" + luminaria_escolhida + "D4"
     df.at[idx, 'angulo_escolhido'] = angulo_x
