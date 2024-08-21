@@ -246,7 +246,7 @@ def modifica_altura():
     tab_interate(2)
     pyautogui.hotkey('ctrl', 'a')
     pyautogui.press('delete')
-    pyautogui.write(str(altura_lum_x))
+    pyautogui.write(str(altura_minima))
     sleep(0.3)
 
     pyautogui.press('tab')
@@ -1354,6 +1354,11 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
 
     if(altura_modificada == True):
         df.at[idx, 'nova_altura'] = altura_float
+    else:
+        df.at[idx, 'nova_altura'] = "Sem alterações"
+
+    if(braco_modificado_check == True):
+        df.at[idx, 'novo_braco'] = novo_braco_eficientiza
     else:
         df.at[idx, 'nova_altura'] = "Sem alterações"
 
