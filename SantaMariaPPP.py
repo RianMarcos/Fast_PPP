@@ -11,8 +11,9 @@ cont_geral = 0
 check_distri = 0
 modifica_altura_verifica = True #ativar ou desativar modificação de altura
 coeficiente_eficientiza = 0.6 #Valor de eficientização combinado
-atender_eficientiza = True #Ligar ou desligar eficientização
+atender_eficientiza = False #Ligar ou desligar eficientização
 qtde_bracos = 4 #quantos braços vao ser testados
+altura_modificada = False
 
 
 # Path to save the screenshot
@@ -24,7 +25,7 @@ caminho = r"C:\Program Files\Tesseract-OCR"
 pytesseract.pytesseract.tesseract_cmd = caminho + r'\tesseract.exe'
 
 # Carregar os dados da planilha
-df = pd.read_excel('table_itajai_test.xlsx', sheet_name='RIAN - V4P4')
+df = pd.read_excel('Cadastro_Piloto_SM.xlsx', sheet_name='Cadastro IPSM')
 # Verificar as colunas para encontrar os nomes corretos
 print(df.columns)
 
@@ -55,12 +56,12 @@ distribuicao = df['distribuicao'].str.lower().tolist()
 # Preencher valores ausentes com 0 e converter a coluna 'qtde_faixas' para inteiros
 df['qtde_faixas'] = df['qtde_faixas'].fillna(0).astype(int)
 qtde_faixas = df['qtde_faixas'].tolist()
-qtde_ruas = df['qtde_ruas'].tolist()
 larg_canteiro_central = df['larg_canteiro_central'].tolist()
 pendor = df['pendor'].tolist()
 classe_via = df['classe_via'].str.lower().tolist() 
 classe_passeio = df['classe_passeio'].str.lower().tolist() 
 luminaria_antiga = df['luminaria_antiga'].tolist()
+ip = df['ip'].tolist()
 
 
 #------------ABRINDO CENARIO PADRAO ITAJAI-------------
@@ -229,10 +230,13 @@ def porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH):
             print("Nova luminária escolhida: "+ luminaria_escolhida)
 
         if(luminaria_escolhida == "NAO ATENDE"):
-            altura_modificada = altura_lum_x
+  
+            altura_modificada = False
             print("Modificação de altura nao foi o bastante para a atender a este cenário, iniciar modifcação de braço")
         elif(luminaria_escolhida != "NAO ATENDE" and luminaria_escolhida_int <= eficientiza):
             verifica_modificacaoH = True
+            
+            altura_modificada = True
             altura_float = float(altura)
             print("Modificação de altura bem sucedida, nova altura de instalação: ")
             print(altura_float)
@@ -240,7 +244,7 @@ def porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH):
     else:
         print("Não será necessário fazer modificações, a luminaria escolhida ja atende a eficientização")
         luminaria_escolhida_eficientiza = luminaria_escolhida
-    return luminaria_escolhida_eficientiza
+    return luminaria_escolhida_eficientiza, altura_modificada
 
 def modifica_altura():
     altura_maxima = 8.5
@@ -258,7 +262,7 @@ def modifica_altura():
     sleep(0.3)
     
 
-    tab_interate(19)
+    tab_interate(20)
     pyautogui.press('space')
     sleep(0.8)
 
@@ -279,7 +283,7 @@ def modifica_altura():
     pyautogui.press('delete')
     pyautogui.write(str(passo))
     sleep(0.3)
-
+    refatorar_altura_inst = True
 def refatora_altura():
     print("Arrumando cenário padrão: ")
 
@@ -295,7 +299,7 @@ def refatora_altura():
     pyautogui.click(luminaria.x, luminaria.y)
     sleep(1)
 
-    tab_interate(22)
+    tab_interate(23)
     pyautogui.press('space')
     print("Cenário padrão ajustado")
 
@@ -402,7 +406,7 @@ def save_pdf_report():
     click_image('guia_documentacao.png', 0.6)
     sleep(1)
     click_image('exibir_doc.png', 0.6, double_click=True)
-    sleep(15)
+    sleep(43)
     click_image('guardar_como.png', 0.7)
     sleep(0.5)
     click_image('pdf.png', 0.7)
@@ -588,7 +592,7 @@ def classifica_vias_passeios():
     pyautogui.click(seta_passeio1)
     sleep(1)
 
-    if(valida_central == 1):
+    if(valida_central == 1  or valida_central_sem_distri== 1):
         seta_pista_rodagem2 = pyautogui.locateCenterOnScreen('seta_pista_rodagem2.png', confidence=0.9)
         pyautogui.click(seta_pista_rodagem2.x, seta_pista_rodagem2.y)
 
@@ -625,7 +629,7 @@ def classifica_vias_passeios():
     pyautogui.scroll(-300)
     sleep(1)
     #passar para proxima
-    if(valida_central == 1):
+    if(valida_central == 1 or valida_central_sem_distri== 1):
         #preencher valroes para canteiro central
 
         #abrir a janela necessária
@@ -717,7 +721,7 @@ def classifica_vias_passeios():
     pyautogui.click(seta_passeio1_closed)
     sleep(1)
 
-    if(valida_central == 1):
+    if(valida_central == 1 or valida_central_sem_distri== 1):
         #abrir a janela necessária
         seta_pista2_closed = pyautogui.locateCenterOnScreen('seta_pista2_closed.png', confidence=0.9)
         pyautogui.click(seta_pista2_closed)
@@ -825,9 +829,10 @@ def tab_interate(cont):
 
 
 # Iterar sobre os valores extraídos e digitar no campo correspondente
-for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x, luminaria_antiga) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio, luminaria_antiga)):
+for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x, altura_lum_x, angulo_x, poste_pista_x, comprimento_braco_x, qtde_faixas_x, larg_canteiro_central_x, pendor_x, classe_via_x, classe_passeio_x, luminaria_antiga, ip) in enumerate(zip(larg_passeio_opost, largura_via, larg_passeio_adj, entre_postes, altura_lum, angulo, poste_pista, comprimento_braco, qtde_faixas, larg_canteiro_central, pendor, classe_via, classe_passeio, luminaria_antiga, ip)):
     sleep(1.5)
     braco_modificado_check = False
+    refatorar_altura_inst = False
     #braco_modificado_check = False #veriricador de alteração de braço
     verifica_modificacaoH = False #sempre que entrar no loop precisa estar em false pra conseguir entrar na modificação de altura da eficientização
     altura_modificada = False
@@ -894,7 +899,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     verifica_add_passeio()
 
     auxiliar_1 = 0
-    if distribuicao[cont_geral-1] == 'central' or distribuicao[cont_geral-1]== 'canteiro central' or distribuicao[cont_geral-1]==  'canteiro_central' or distribuicao[cont_geral-1]== 'central':
+    if distribuicao[cont_geral-1] == 'central' or distribuicao[cont_geral-1]== 'canteiro central' or distribuicao[cont_geral-1]==  'canteiro_central' or distribuicao[cont_geral-1]== 'central' or larg_canteiro_central_x != 0:
         #validar se ja existe canteiro central, se nao existir adicionar 
         try:
             faixa_central_1 = pyautogui.locateCenterOnScreen('faixa_central_1.png', confidence=0.8)
@@ -957,13 +962,19 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         # pista1 = pyautogui.locateCenterOnScreen('pista1.png', confidence=0.7)
         # pyautogui.doubleClick(pista1.x, pista1.y)
         # sleep(1)
-        tab_interate(6)
+        tab_interate(1)
+        nome_pista_2 = "Pista de rodagem 2"
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.press('delete')
+        pyautogui.write(str(nome_pista_2))
+        sleep(0.5)
+        tab_interate(5)
         # Selecionar todo o texto existente e apagar
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.press('delete')
         # Digitando o novo valor para largura_via
         pyautogui.write(str(larg_via))
-        sleep(1)
+        sleep(1.2)
 
         tab_interate(1)
         sleep(0.7)
@@ -1149,6 +1160,10 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     #Selecionando tipo de distruibuicao dos postes
 
     valida_central = 0
+    valida_central_sem_distri = 0
+    if(larg_canteiro_central_x != 0): #receber um aqui para que na classificação dos passeios ele entenda que possui um canteiro central
+        valida_central_sem_distri = 1
+
     if distribuicao[cont_geral-1] == 'unilateral' or distribuicao[cont_geral-1] == 'unilateral inferior' or distribuicao[cont_geral-1] == 'unilateral_inferior' :
         img_uni = pyautogui.locateCenterOnScreen('unilateral_inferior.png', confidence =0.7)
         pyautogui.click(img_uni.x, img_uni.y)
@@ -1171,8 +1186,9 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         teste_central(x_img, y_img, tabs)
         sleep(0.5)
 
-    elif distribuicao[cont_geral-1]== 'bilateral_alternada' or distribuicao[cont_geral-1] == 'bilateral alternada':
-        img_bilateral_alternada = pyautogui.locateCenterOnScreen('bilateral_alternada.png', confidence =0.7)
+    elif distribuicao[cont_geral-1]== 'bilateral_alternada' or distribuicao[cont_geral-1] == 'bilateral alternada' or distribuicao[cont_geral-1] == 'Bilateral Alternado' or distribuicao[cont_geral-1] == 'bilateral alternado':
+        print("entrou no bilat alternada")
+        img_bilateral_alternada = pyautogui.locateCenterOnScreen('bilateral_alternada.png', confidence=0.7)
         pyautogui.click(img_bilateral_alternada.x, img_bilateral_alternada.y)
         sleep(1)
         x_img = img_bilateral_alternada.x #posicao da distruibuicao
@@ -1196,7 +1212,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     # Digitando o novo valor para larg_passeio_adjacente
     pyautogui.write(str(entre_postes_x))
-    sleep(2)
+    sleep(3.5)
     #Altura do ponto de luz
     tab_interate(3)
     pyautogui.hotkey('ctrl', 'a')
@@ -1268,20 +1284,22 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         print("Nova luminária escolhida: "+ luminaria_escolhida)
 
         if(luminaria_escolhida == "NAO ATENDE"):
-            altura_modificada = altura_lum_x
+            altura_modificada = False
             print("Modificação de altura nao foi o bastante para a atender a este cenário, iniciar modifcação de braço")
+            refatorar_altura_inst = True
         else:
             altura_modificada = True
             altura_float = float(altura)
             print("Modificação de altura bem sucedida, nova altura de instalação: ")
             print(altura_float)
+            
    
 
     if(atender_eficientiza == True):
-        luminaria_escolhida = porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH)
+        luminaria_escolhida, altura_modificada = porcentagem_eficientiza(luminaria_escolhida, verifica_modificacaoH)
 
         #arrumar parametros do cenário padrão caso a altura de instalção foi modificada
-    if(altura_modificada == True):
+    if(altura_modificada == True or refatorar_altura_inst == True):
         refatora_altura()
 
 
@@ -1299,18 +1317,18 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
         print("Entrou no altura modificada e braco modificado")
-        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+        modify_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
     elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
-        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+        modify_name = "Santa Maria " + cont__str + " - " + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
     elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
         print("braco modificado")
-        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
+        modify_name = "Santa Maria " + cont__str + " - " + ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
-        modify_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
+        modify_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
     else:
-        modify_name = "Itajai " + cont__str + " - " + luminaria_escolhida #entra aqui se nao atender
+        modify_name = "Santa Maria " + cont__str + " - " + ip + " - " + luminaria_escolhida #entra aqui se nao atender
     #modify_name.upper() 
      
     to_upper_safe(modify_name)
@@ -1342,18 +1360,18 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
         print("Entrou no altura modificada e braco modificado")
-        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+        project_name = "Santa Maria " + cont__str + " - "  + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
     elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
-        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+        project_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
     elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
         print("braco modificado")
-        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
+        project_name = "Santa Maria " + cont__str + " - " +  ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
-        project_name = "Itajai " + cont__str + " - " + "AGN7" + luminaria_escolhida + "D4"
+        project_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
     else:
-        project_name = "Itajai " + cont__str + " - " + luminaria_escolhida #entra aqui se nao atender
+        project_name = "Santa Maria " + cont__str + " - " + ip + " - " +  luminaria_escolhida #entra aqui se nao atender
     pyautogui.write(project_name.upper() + ".evo")
     
     pyautogui.moveTo(1136, 1136)
@@ -1367,19 +1385,24 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     if(verifica_modificacaoH  == True):
         refatora_altura()
     '''
-    # Atualizar a planilha com a luminária escolhida e o ângulo
-    df.at[idx, 'luminaria_escolhida'] = "AGN7" + luminaria_escolhida + "D4"
+    if(luminaria_escolhida == "NAO ATENDE"):
+        df.at[idx, 'luminaria_escolhida'] =  luminaria_escolhida 
+    else:    
+        # Atualizar a planilha com a luminária escolhida e o ângulo
+        df.at[idx, 'luminaria_escolhida'] = "AGN7" + luminaria_escolhida + "D4"
+
     df.at[idx, 'angulo_escolhido'] = angulo_x
 
-    if(altura_modificada == True):
+          
+    if(altura_modificada == True): #
         df.at[idx, 'nova_altura'] = altura_float
     else:
         df.at[idx, 'nova_altura'] = "Sem alterações"
-
+ 
     if(braco_modificado_check == True):
         df.at[idx, 'novo_braco'] = novo_braco_eficientiza
     else:
-        df.at[idx, 'nova_altura'] = "Sem alterações"
+        df.at[idx, 'novo_braco'] = "Sem alterações"
 
     # Garantir que a coluna 'cenario' é do tipo object
     df['cenario'] = df['cenario'].astype(object)
@@ -1393,6 +1416,6 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     df_limpo = df.drop(columns=colunas_remover)
 
     # Salvar a planilha atualizada  
-    df_limpo.to_excel('table_itajai_test_atualizada.xlsx', sheet_name='RIAN - V4P4', index=False)
+    df_limpo.to_excel('Atualizada_Cadastro_Piloto_SM.xlsx', sheet_name='Cadastro IPSM', index=False)
 
     #colocar nova altura de instalação na planilha
