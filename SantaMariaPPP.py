@@ -7,6 +7,7 @@ import numpy as np
 import os
 import keyboard
 
+cont_cenario = 134
 cont_geral = 0
 check_distri = 0
 modifica_altura_verifica = True #ativar ou desativar modificação de altura
@@ -406,7 +407,7 @@ def save_pdf_report():
     click_image('guia_documentacao.png', 0.6)
     sleep(1)
     click_image('exibir_doc.png', 0.6, double_click=True)
-    sleep(43)
+    sleep(53)
     click_image('guardar_como.png', 0.7)
     sleep(0.5)
     click_image('pdf.png', 0.7)
@@ -885,9 +886,11 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         check_passeio_adjacente = 1
 
     print("Distribuição: "+ distribuicao[idx])
-
     cont_geral += 1  # var para fazer a contagem de cenários 
     cont__str = str(cont_geral)  # var para fazer conversão de int para string e passar como parametro no nome do cenário
+
+    cont_cenario += 1
+    cont_cenario_str = str(cont_cenario)
     
     # Abrindo guia planejamento
     pyautogui.click(399, 82, duration=0.5)
@@ -1317,18 +1320,18 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
         print("Entrou no altura modificada e braco modificado")
-        modify_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
     elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
-        modify_name = "Santa Maria " + cont__str + " - " + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
     elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
         print("braco modificado")
-        modify_name = "Santa Maria " + cont__str + " - " + ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
-        modify_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
     else:
-        modify_name = "Santa Maria " + cont__str + " - " + ip + " - " + luminaria_escolhida #entra aqui se nao atender
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - " + luminaria_escolhida #entra aqui se nao atender
     #modify_name.upper() 
      
     to_upper_safe(modify_name)
@@ -1360,18 +1363,18 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
     pyautogui.press('delete')
     if(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True and braco_modificado_check == True):
         print("Entrou no altura modificada e braco modificado")
-        project_name = "Santa Maria " + cont__str + " - "  + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
+        project_name = "Santa Maria " + cont_cenario_str + " - "  + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
     elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
-        project_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+        project_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
     elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
         print("braco modificado")
-        project_name = "Santa Maria " + cont__str + " - " +  ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
+        project_name = "Santa Maria " + cont_cenario_str + " - " +  ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
     elif(luminaria_escolhida != "NAO ATENDE"):
         print("Entrou no altura nao modificada")
-        project_name = "Santa Maria " + cont__str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
+        project_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4"
     else:
-        project_name = "Santa Maria " + cont__str + " - " + ip + " - " +  luminaria_escolhida #entra aqui se nao atender
+        project_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - " +  luminaria_escolhida #entra aqui se nao atender
     pyautogui.write(project_name.upper() + ".evo")
     
     pyautogui.moveTo(1136, 1136)

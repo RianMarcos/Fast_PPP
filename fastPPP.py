@@ -880,7 +880,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         check_passeio_adjacente = 1
 
     print("Distribuição: "+ distribuicao[idx])
-
+    
     cont_geral += 1  # var para fazer a contagem de cenários 
     cont__str = str(cont_geral)  # var para fazer conversão de int para string e passar como parametro no nome do cenário
     
