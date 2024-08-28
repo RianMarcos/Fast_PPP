@@ -26,7 +26,7 @@ caminho = r"C:\Program Files\Tesseract-OCR"
 pytesseract.pytesseract.tesseract_cmd = caminho + r'\tesseract.exe'
 
 # Carregar os dados da planilha
-df = pd.read_excel('Cadastro_Piloto_SM.xlsx', sheet_name='Cadastro IPSM')
+df = pd.read_excel('Cadastro_Piloto_SM_V02.xlsx', sheet_name='Cadastro IPSM')
 # Verificar as colunas para encontrar os nomes corretos
 print(df.columns)
 
@@ -262,8 +262,10 @@ def modifica_altura():
     pyautogui.click(indice_tipos.x, indice_tipos.y)
     sleep(0.3)
     
-
-    tab_interate(20)
+    if(larg_canteiro_central_x > 0):
+     tab_interate(20)
+    else:
+     tab_interate(19)
     pyautogui.press('space')
     sleep(0.8)
 
@@ -300,7 +302,10 @@ def refatora_altura():
     pyautogui.click(luminaria.x, luminaria.y)
     sleep(1)
 
-    tab_interate(23)
+    if(larg_canteiro_central_x >0):
+        tab_interate(23)
+    else:
+        tab_interate(22)
     pyautogui.press('space')
     print("Cenário padrão ajustado")
 
@@ -1323,7 +1328,7 @@ for idx, (larg_passeio_oposto, larg_via, larg_passeio_adjacente, entre_postes_x,
         modify_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) + " - BR" + str(novo_braco_eficientiza) #entra aqui se modificou a altura de instalção e braço
     elif(luminaria_escolhida != "NAO ATENDE" and altura_modificada == True):
         print("Entrou no altura modificada")
-        modify_name = "Santa Maria " + cont_cenario_str + " - " + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
+        modify_name = "Santa Maria " + cont_cenario_str + " - " + ip + " - AGN7" + luminaria_escolhida + "D4 " + " - H" + str(altura_float) #entra aqui se modificou a altura de instalção
     elif(luminaria_escolhida != "NAO ATENDE" and braco_modificado_check == True):
         print("braco modificado")
         modify_name = "Santa Maria " + cont_cenario_str + " - " + ip +" - AGN7" + luminaria_escolhida + "D4 " + " - BR" + str(comprimento_braco_x) 
